@@ -1,0 +1,1900 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Box Packing Calculator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .main-layout {
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            gap: 20px;
+        }
+
+        .sidebar {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 25px;
+            height: fit-content;
+            position: sticky;
+            top: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .sidebar h2 {
+            font-size: 20px;
+            color: #1e293b;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .saved-products-list {
+            max-height: 500px;
+            overflow-y: auto;
+        }
+
+        .saved-product-item {
+            background: #f8fafc;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 10px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .saved-product-item:hover {
+            border-color: #4f46e5;
+            background: #eef2ff;
+        }
+
+        .saved-product-header {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .saved-product-image {
+            width: 50px;
+            height: 50px;
+            object-fit: cover;
+            border-radius: 6px;
+            background: #e2e8f0;
+        }
+
+        .saved-product-info {
+            flex: 1;
+        }
+
+        .saved-product-name {
+            font-weight: 600;
+            color: #1e293b;
+            font-size: 14px;
+        }
+
+        .saved-product-dims {
+            font-size: 12px;
+            color: #64748b;
+        }
+
+        .saved-product-actions {
+            display: flex;
+            gap: 5px;
+            margin-top: 5px;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 35px;
+            margin-bottom: 25px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 32px;
+            color: #1e293b;
+        }
+
+        .icon {
+            width: 40px;
+            height: 40px;
+            color: #4f46e5;
+        }
+
+        .section-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #334155;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .grid {
+            display: grid;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .grid-4 {
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        }
+
+        .grid-6 {
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        label {
+            font-size: 14px;
+            font-weight: 500;
+            color: #475569;
+            margin-bottom: 5px;
+        }
+
+        input[type="text"],
+        input[type="number"] {
+            padding: 10px 12px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        input[type="file"] {
+            padding: 8px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #4f46e5;
+        }
+
+        .product-card {
+            background: #f8fafc;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            border: 2px solid #e2e8f0;
+        }
+
+        .product-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .product-header h3 {
+            font-size: 16px;
+            color: #334155;
+        }
+
+        .product-image-preview {
+            width: 80px;
+            height: 80px;
+            object-fit: cover;
+            border-radius: 8px;
+            margin-top: 10px;
+            border: 2px solid #e2e8f0;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: #4f46e5;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #4338ca;
+        }
+
+        .btn-success {
+            background: #16a34a;
+            color: white;
+            width: 100%;
+            justify-content: center;
+            padding: 15px;
+            font-size: 18px;
+        }
+
+        .btn-success:hover {
+            background: #15803d;
+        }
+
+        .btn-danger {
+            background: transparent;
+            color: #ef4444;
+            padding: 5px;
+        }
+
+        .btn-danger:hover {
+            background: #fee2e2;
+        }
+
+        .btn-small {
+            padding: 5px 10px;
+            font-size: 12px;
+        }
+
+        .btn-warning {
+            background: #f59e0b;
+            color: white;
+        }
+
+        .btn-warning:hover {
+            background: #d97706;
+        }
+
+        .btn-info {
+            background: #0ea5e9;
+            color: white;
+        }
+
+        .btn-info:hover {
+            background: #0284c7;
+        }
+
+        .results-summary {
+            background: #eef2ff;
+            border: 2px solid #6366f1;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .results-summary p {
+            font-size: 18px;
+            font-weight: 600;
+            color: #3730a3;
+        }
+
+        .results-summary small {
+            font-size: 14px;
+            color: #4338ca;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            padding: 20px;
+            border-radius: 8px;
+        }
+
+        .stat-card h3 {
+            font-size: 16px;
+            font-weight: 600;
+            color: #334155;
+            margin-bottom: 15px;
+        }
+
+        .stat-card p {
+            font-size: 14px;
+            color: #64748b;
+            margin-bottom: 8px;
+        }
+
+        .stat-card.blue {
+            background: #eff6ff;
+        }
+
+        .stat-card.purple {
+            background: #faf5ff;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 12px;
+            background: #e2e8f0;
+            border-radius: 6px;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            border-radius: 6px;
+            transition: width 0.3s;
+        }
+
+        .progress-fill.blue {
+            background: #3b82f6;
+        }
+
+        .progress-fill.purple {
+            background: #a855f7;
+        }
+
+        .product-result {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            border: 2px solid #e2e8f0;
+            margin-bottom: 15px;
+        }
+
+        .product-result-header {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .product-result-image {
+            width: 100px;
+            height: 100px;
+            object-fit: cover;
+            border-radius: 8px;
+            border: 2px solid #e2e8f0;
+        }
+
+        .product-name {
+            font-size: 18px;
+            font-weight: 700;
+            color: #1e293b;
+        }
+
+        .product-details {
+            font-size: 14px;
+            color: #64748b;
+            margin-bottom: 5px;
+        }
+
+        .quantity-box {
+            background: #dcfce7;
+            border: 2px solid #86efac;
+            padding: 15px;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .quantity-number {
+            font-size: 28px;
+            font-weight: 700;
+            color: #166534;
+        }
+
+        .quantity-label {
+            font-size: 14px;
+            color: #15803d;
+        }
+
+        .limit-info {
+            text-align: right;
+            font-size: 12px;
+            color: #64748b;
+        }
+
+        .limit-factor {
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        @media (max-width: 1024px) {
+            .main-layout {
+                grid-template-columns: 1fr;
+            }
+
+            .sidebar {
+                position: relative;
+                top: 0;
+                max-height: 400px;
+            }
+
+            .header h1 {
+                font-size: 24px;
+            }
+
+            .grid-4, .grid-6 {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+
+            .card {
+                padding: 20px;
+            }
+
+            .header {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .grid-4, .grid-6 {
+                grid-template-columns: 1fr;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .btn-actions {
+                flex-direction: column;
+            }
+
+            .btn-actions button {
+                width: 100%;
+            }
+
+            .product-result-header {
+                flex-direction: column;
+            }
+
+            .product-result-image {
+                width: 100%;
+                height: auto;
+                max-height: 200px;
+            }
+
+            .controls-3d {
+                flex-direction: column;
+                gap: 8px;
+            }
+
+            .controls-3d button {
+                width: 100%;
+            }
+
+            .modal-content {
+                width: 95%;
+                height: 85vh;
+                padding: 15px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .header h1 {
+                font-size: 20px;
+            }
+
+            .section-title {
+                font-size: 16px;
+            }
+
+            .quantity-box {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .limit-info {
+                text-align: center;
+                margin-top: 10px;
+            }
+        }
+
+        .sync-info {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 15px;
+            text-align: center;
+            font-size: 14px;
+        }
+
+        .sync-info strong {
+            display: block;
+            font-size: 16px;
+            margin-bottom: 5px;
+        }
+
+        .share-code {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 8px 15px;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 18px;
+            font-weight: bold;
+            margin: 10px 0;
+            letter-spacing: 2px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="main-layout">
+            <div class="sidebar">
+                <h2>
+                    <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"></path>
+                    </svg>
+                    Products Database
+                </h2>
+                
+                <div class="sync-info">
+                    <strong>☁️ Cloud Sync Active</strong>
+                    <div>Products sync across devices!</div>
+                    <div class="share-code" id="shareCode">Loading...</div>
+                    <button class="btn btn-small btn-warning" onclick="copyShareCode()" style="margin-top: 10px; width: 100%;">📋 Copy Share Code</button>
+                    <div style="margin-top: 8px; font-size: 12px; opacity: 0.9;">
+                        <strong id="productCount">0</strong> products saved
+                    </div>
+                </div>
+
+                <div style="margin-bottom: 15px;">
+                    <input type="text" id="loadShareCode" placeholder="Enter share code to load" style="width: 100%; padding: 8px; border-radius: 6px; border: 2px solid #e2e8f0; margin-bottom: 8px;">
+                    <button class="btn btn-info btn-small" onclick="loadFromShareCode()" style="width: 100%;">🔄 Load Products</button>
+                </div>
+
+                <div style="margin-bottom: 10px;">
+                    <button class="btn btn-success btn-small" onclick="exportToGoogleSheets()" style="width: 100%;">📊 Export Database to CSV</button>
+                </div>
+
+                <div class="saved-products-list" id="savedProductsList">
+                    <p style="color: #64748b; font-size: 14px;">No saved products yet</p>
+                </div>
+            </div>
+
+            <div>
+                <div class="card">
+                    <div class="header">
+                        <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
+                        </svg>
+                        <h1>Box Packing Calculator</h1>
+                    </div>
+
+                    <div class="section-title">
+                        <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
+                        </svg>
+                        Box Dimensions
+                    </div>
+
+                    <div class="grid grid-4">
+                        <div class="form-group">
+                            <label for="boxLength">Length (cm)</label>
+                            <input type="number" id="boxLength" placeholder="0">
+                        </div>
+                        <div class="form-group">
+                            <label for="boxWidth">Width (cm)</label>
+                            <input type="number" id="boxWidth" placeholder="0">
+                        </div>
+                        <div class="form-group">
+                            <label for="boxHeight">Height (cm)</label>
+                            <input type="number" id="boxHeight" placeholder="0">
+                        </div>
+                        <div class="form-group">
+                            <label for="boxMaxWeight">Max Weight (kg)</label>
+                            <input type="number" step="0.001" id="boxMaxWeight" placeholder="0">
+                        </div>
+                    </div>
+
+                    <div class="section-title">Products</div>
+
+                    <div id="productsContainer"></div>
+
+                    <button class="btn btn-primary" id="addProductBtn">
+                        <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                        </svg>
+                        Add Product
+                    </button>
+
+                    <br><br>
+
+                    <button class="btn btn-success" id="calculateBtn">
+                        <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
+                        </svg>
+                        Calculate Best Fit
+                    </button>
+                </div>
+
+                <div id="resultsContainer" style="display: none;"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3D Visualization Modal -->
+    <div id="modal3d" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 style="margin: 0;">3D Box Visualization</h2>
+                <span class="close" onclick="close3DModal()">&times;</span>
+            </div>
+            <canvas id="canvas3d"></canvas>
+            <div class="controls-3d">
+                <button class="btn btn-info btn-small" onclick="resetCamera()">🔄 Reset View</button>
+                <button class="btn btn-warning btn-small" id="autoRotateBtn" onclick="toggleAutoRotate()">🔁 Auto Rotate: ON</button>
+                <button class="btn btn-success btn-small" onclick="startPackingAnimation()">▶ Play Animation</button>
+                <button class="btn btn-danger btn-small" onclick="resetPacking()">↻ Reset</button>
+                <span style="color: white; font-size: 12px; margin-left: 15px;">💡 Drag to rotate • Scroll to zoom • Right-click to pan</span>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+    <script>
+        var products = [{id: 1, name: '', length: '', width: '', height: '', weight: '', image: ''}];
+        var productIdCounter = 2;
+        var savedProducts = [];
+        var currentResult = null;
+        var shareCode = '';
+        
+        // 3D Visualization variables
+        var scene, camera, renderer, orbitControls;
+        var boxMesh, boxGroup, productMeshes = [];
+        var animationId;
+        var isAnimating = false;
+        var autoRotate = true;
+        var raycaster, mouse;
+
+        // Generate unique share code for this device
+        function generateShareCode() {
+            var code = localStorage.getItem('myShareCode');
+            if (!code) {
+                code = 'BOX-' + Math.random().toString(36).substring(2, 8).toUpperCase();
+                localStorage.setItem('myShareCode', code);
+            }
+            shareCode = code;
+            document.getElementById('shareCode').textContent = code;
+            return code;
+        }
+
+        function copyShareCode() {
+            var code = shareCode || generateShareCode();
+            if (navigator.clipboard) {
+                navigator.clipboard.writeText(code).then(function() {
+                    alert('Share code copied! Share this code with others to sync products:\n\n' + code);
+                }).catch(function() {
+                    fallbackCopy(code);
+                });
+            } else {
+                fallbackCopy(code);
+            }
+        }
+
+        function fallbackCopy(text) {
+            var textArea = document.createElement('textarea');
+            textArea.value = text;
+            textArea.style.position = 'fixed';
+            textArea.style.left = '-9999px';
+            document.body.appendChild(textArea);
+            textArea.select();
+            try {
+                document.execCommand('copy');
+                alert('Share code copied! Share this code:\n\n' + text);
+            } catch (err) {
+                alert('Copy failed. Your share code is:\n\n' + text);
+            }
+            document.body.removeChild(textArea);
+        }
+
+        function loadFromShareCode() {
+            var code = document.getElementById('loadShareCode').value.trim().toUpperCase();
+            if (!code) {
+                alert('Please enter a share code');
+                return;
+            }
+
+            var sharedData = localStorage.getItem('shared_' + code);
+            if (sharedData) {
+                try {
+                    var data = JSON.parse(sharedData);
+                    savedProducts = data.products || [];
+                    saveProductsToStorage();
+                    alert('Products loaded successfully from code: ' + code + '\n\n' + savedProducts.length + ' products imported!');
+                    document.getElementById('loadShareCode').value = '';
+                } catch (e) {
+                    alert('Error loading products. Invalid share code.');
+                }
+            } else {
+                alert('No products found with this share code.\n\nMake sure the person has:\n1. Saved products\n2. Shared their code with you');
+            }
+        }
+
+        function syncToCloud() {
+            var code = shareCode || generateShareCode();
+            var data = {
+                products: savedProducts,
+                lastSync: new Date().toISOString()
+            };
+            localStorage.setItem('shared_' + code, JSON.stringify(data));
+        }
+
+        function loadSavedProducts() {
+            var saved = localStorage.getItem('savedProducts');
+            if (saved) {
+                try {
+                    savedProducts = JSON.parse(saved);
+                } catch (e) {
+                    savedProducts = [];
+                }
+                renderSavedProducts();
+            }
+        }
+
+        function saveProductsToStorage() {
+            localStorage.setItem('savedProducts', JSON.stringify(savedProducts));
+            syncToCloud();
+            renderSavedProducts();
+        }
+
+        function renderSavedProducts() {
+            var container = document.getElementById('savedProductsList');
+            if (savedProducts.length === 0) {
+                container.innerHTML = '<p style="color: #64748b; font-size: 14px;">No saved products yet</p>';
+                return;
+            }
+
+            var html = '';
+            for (var i = 0; i < savedProducts.length; i++) {
+                var product = savedProducts[i];
+                var imageSrc = product.image || 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="50" height="50" viewBox="0 0 50 50"%3E%3Crect fill="%23e2e8f0" width="50" height="50"/%3E%3Ctext x="50%25" y="50%25" dominant-baseline="middle" text-anchor="middle" fill="%2394a3b8" font-size="20"%3E📦%3C/text%3E%3C/svg%3E';
+                
+                html += '<div class="saved-product-item">' +
+                    '<div class="saved-product-header">' +
+                        '<img src="' + imageSrc + '" class="saved-product-image" alt="' + product.name + '">' +
+                        '<div class="saved-product-info">' +
+                            '<div class="saved-product-name">' + product.name + '</div>' +
+                            '<div class="saved-product-dims">' + product.length + '×' + product.width + '×' + product.height + ' cm, ' + product.weight + ' kg</div>' +
+                        '</div>' +
+                    '</div>' +
+                    '<div class="saved-product-actions">' +
+                        '<button class="btn btn-info btn-small" onclick="loadSavedProduct(' + product.id + ')">Use</button>' +
+                        '<button class="btn btn-danger btn-small" onclick="deleteSavedProduct(' + product.id + ')">Delete</button>' +
+                    '</div>' +
+                '</div>';
+            }
+
+            container.innerHTML = html;
+        }
+
+        function saveCurrentProduct(productId) {
+            var product = null;
+            for (var i = 0; i < products.length; i++) {
+                if (products[i].id === productId) {
+                    product = products[i];
+                    break;
+                }
+            }
+
+            if (!product || !product.name || !product.length || !product.width || !product.height || !product.weight) {
+                alert('Please fill in all product fields before saving');
+                return;
+            }
+
+            var savedProduct = {
+                id: Date.now(),
+                name: product.name,
+                length: product.length,
+                width: product.width,
+                height: product.height,
+                weight: product.weight,
+                image: product.image
+            };
+
+            savedProducts.push(savedProduct);
+            saveProductsToStorage();
+            alert('Product saved successfully!');
+        }
+
+        function loadSavedProduct(savedId) {
+            var savedProduct = null;
+            for (var i = 0; i < savedProducts.length; i++) {
+                if (savedProducts[i].id === savedId) {
+                    savedProduct = savedProducts[i];
+                    break;
+                }
+            }
+            
+            if (!savedProduct) return;
+
+            products.push({
+                id: productIdCounter++,
+                name: savedProduct.name,
+                length: savedProduct.length,
+                width: savedProduct.width,
+                height: savedProduct.height,
+                weight: savedProduct.weight,
+                image: savedProduct.image
+            });
+
+            renderProducts();
+        }
+
+        function deleteSavedProduct(savedId) {
+            if (confirm('Are you sure you want to delete this saved product?')) {
+                var newSavedProducts = [];
+                for (var i = 0; i < savedProducts.length; i++) {
+                    if (savedProducts[i].id !== savedId) {
+                        newSavedProducts.push(savedProducts[i]);
+                    }
+                }
+                savedProducts = newSavedProducts;
+                saveProductsToStorage();
+            }
+        }
+
+        function handleImageUpload(productId, file) {
+            if (file && file.type.indexOf('image/') === 0) {
+                var reader = new FileReader();
+                reader.onload = function(e) {
+                    for (var i = 0; i < products.length; i++) {
+                        if (products[i].id === productId) {
+                            products[i].image = e.target.result;
+                            renderProducts();
+                            break;
+                        }
+                    }
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function renderProducts() {
+            var container = document.getElementById('productsContainer');
+            container.innerHTML = '';
+
+            for (var i = 0; i < products.length; i++) {
+                var product = products[i];
+                var index = i;
+                
+                var productCard = document.createElement('div');
+                productCard.className = 'product-card';
+                
+                var deleteButton = '';
+                if (products.length > 1) {
+                    deleteButton = '<button class="btn btn-danger" onclick="removeProduct(' + product.id + ')">' +
+                    '<svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">' +
+                    '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>' +
+                    '</svg>' +
+                    '</button>';
+                }
+                
+                var imagePreview = product.image ? '<img src="' + product.image + '" class="product-image-preview" alt="Product">' : '';
+                
+                productCard.innerHTML = 
+                    '<div class="product-header">' +
+                        '<h3>Product ' + (index + 1) + '</h3>' +
+                        '<div style="display: flex; gap: 10px;">' +
+                            '<button class="btn btn-warning btn-small" onclick="saveCurrentProduct(' + product.id + ')">Save Product</button>' +
+                            deleteButton +
+                        '</div>' +
+                    '</div>' +
+                    '<div class="grid grid-6">' +
+                        '<div class="form-group">' +
+                            '<label>Image</label>' +
+                            '<input type="file" accept="image/*" id="img_' + product.id + '" onchange="handleImageUpload(' + product.id + ', this.files[0])">' +
+                            imagePreview +
+                        '</div>' +
+                        '<div class="form-group">' +
+                            '<label>Name</label>' +
+                            '<input type="text" id="name_' + product.id + '" value="' + product.name + '" oninput="updateProduct(' + product.id + ', \'name\', this.value)" placeholder="Product name">' +
+                        '</div>' +
+                        '<div class="form-group">' +
+                            '<label>Length (cm)</label>' +
+                            '<input type="number" id="length_' + product.id + '" value="' + product.length + '" oninput="updateProduct(' + product.id + ', \'length\', this.value)" placeholder="0">' +
+                        '</div>' +
+                        '<div class="form-group">' +
+                            '<label>Width (cm)</label>' +
+                            '<input type="number" id="width_' + product.id + '" value="' + product.width + '" oninput="updateProduct(' + product.id + ', \'width\', this.value)" placeholder="0">' +
+                        '</div>' +
+                        '<div class="form-group">' +
+                            '<label>Height (cm)</label>' +
+                            '<input type="number" id="height_' + product.id + '" value="' + product.height + '" oninput="updateProduct(' + product.id + ', \'height\', this.value)" placeholder="0">' +
+                        '</div>' +
+                        '<div class="form-group">' +
+                            '<label>Weight (g)</label>' +
+                            '<input type="number" id="weight_' + product.id + '" value="' + product.weight + '" oninput="updateProduct(' + product.id + ', \'weight\', this.value)" placeholder="0">' +
+                        '</div>' +
+                    '</div>';
+                container.appendChild(productCard);
+            }
+        }
+
+        function addProduct() {
+            products.push({
+                id: productIdCounter++,
+                name: '',
+                length: '',
+                width: '',
+                height: '',
+                weight: '',
+                image: ''
+            });
+            renderProducts();
+        }
+
+        function removeProduct(id) {
+            if (products.length > 1) {
+                var newProducts = [];
+                for (var i = 0; i < products.length; i++) {
+                    if (products[i].id !== id) {
+                        newProducts.push(products[i]);
+                    }
+                }
+                products = newProducts;
+                renderProducts();
+            }
+        }
+
+        function updateProduct(id, field, value) {
+            console.log('Updating product:', id, field, value);
+            for (var i = 0; i < products.length; i++) {
+                if (products[i].id === id) {
+                    products[i][field] = value;
+                    console.log('Updated product:', products[i]);
+                    break;
+                }
+            }
+        }
+
+        function calculatePacking() {
+            var boxLength = parseFloat(document.getElementById('boxLength').value);
+            var boxWidth = parseFloat(document.getElementById('boxWidth').value);
+            var boxHeight = parseFloat(document.getElementById('boxHeight').value);
+            var boxMaxWeightKg = parseFloat(document.getElementById('boxMaxWeight').value);
+            var boxMaxWeight = boxMaxWeightKg * 1000; // Convert kg to grams
+
+            console.log('Box dimensions:', boxLength, boxWidth, boxHeight, 'Max weight:', boxMaxWeightKg, 'kg =', boxMaxWeight, 'g');
+
+            if (!boxLength || !boxWidth || !boxHeight || !boxMaxWeightKg) {
+                alert('Please fill in all box dimensions and maximum weight');
+                return;
+            }
+
+            if (boxLength <= 0 || boxWidth <= 0 || boxHeight <= 0 || boxMaxWeightKg <= 0) {
+                alert('All box dimensions and weight must be greater than 0');
+                return;
+            }
+
+            var boxVolume = boxLength * boxWidth * boxHeight;
+            var packingDetails = [];
+            var hasValidProducts = false;
+
+            // First, collect all valid products
+            var validProducts = [];
+            for (var i = 0; i < products.length; i++) {
+                var product = products[i];
+                if (product.length && product.width && product.height && product.weight) {
+                    hasValidProducts = true;
+                    var prodLength = parseFloat(product.length);
+                    var prodWidth = parseFloat(product.width);
+                    var prodHeight = parseFloat(product.height);
+                    var prodWeight = parseFloat(product.weight);
+                    
+                    if (prodLength > 0 && prodWidth > 0 && prodHeight > 0 && prodWeight > 0) {
+                        validProducts.push({
+                            name: product.name || 'Product ' + (i + 1),
+                            length: prodLength,
+                            width: prodWidth,
+                            height: prodHeight,
+                            weight: prodWeight,
+                            volume: prodLength * prodWidth * prodHeight,
+                            image: product.image
+                        });
+                    }
+                }
+            }
+
+            if (!hasValidProducts || validProducts.length === 0) {
+                alert('Please fill in at least one product with all dimensions and weight');
+                return;
+            }
+
+            // Calculate how many of ALL products can fit TOGETHER in ONE box
+            var remainingVolume = boxVolume;
+            var remainingWeight = boxMaxWeight;
+            
+            for (var i = 0; i < validProducts.length; i++) {
+                var prod = validProducts[i];
+                
+                // Calculate maximum quantity based on remaining space
+                var maxQtyByVolume = Math.floor(remainingVolume / prod.volume);
+                var maxQtyByWeight = Math.floor(remainingWeight / prod.weight);
+                var maxQuantity = Math.min(maxQtyByVolume, maxQtyByWeight);
+                
+                if (maxQuantity < 0) maxQuantity = 0;
+                
+                var limitingFactor = maxQtyByVolume < maxQtyByWeight ? 'volume' : 'weight';
+
+                if (maxQuantity === 0) {
+                    if (prod.weight > remainingWeight) {
+                        console.log('Product "' + prod.name + '" too heavy for remaining capacity');
+                    }
+                    if (prod.volume > remainingVolume) {
+                        console.log('Product "' + prod.name + '" too big for remaining capacity');
+                    }
+                }
+
+                var usedVolume = prod.volume * maxQuantity;
+                var usedWeight = prod.weight * maxQuantity;
+                
+                // Update remaining capacity
+                remainingVolume -= usedVolume;
+                remainingWeight -= usedWeight;
+
+                packingDetails.push({
+                    name: prod.name,
+                    maxQuantity: maxQuantity,
+                    volume: usedVolume,
+                    weight: usedWeight,
+                    unitVolume: prod.volume,
+                    unitWeight: prod.weight,
+                    dimensions: prod.length + ' × ' + prod.width + ' × ' + prod.height,
+                    limitingFactor: limitingFactor,
+                    image: prod.image
+                });
+            }
+
+            var totalWeight = 0;
+            var totalVolume = 0;
+            for (var i = 0; i < packingDetails.length; i++) {
+                totalWeight += packingDetails[i].weight;
+                totalVolume += packingDetails[i].volume;
+            }
+
+            var volumeUtilization = (totalVolume / boxVolume) * 100;
+            var weightUtilization = (totalWeight / boxMaxWeight) * 100;
+
+            console.log('Results:', {totalWeight: totalWeight, totalVolume: totalVolume, volumeUtilization: volumeUtilization, weightUtilization: weightUtilization});
+
+            currentResult = {
+                totalWeight: totalWeight,
+                totalVolume: totalVolume,
+                boxVolume: boxVolume,
+                boxMaxWeight: boxMaxWeight,
+                boxMaxWeightKg: boxMaxWeightKg,
+                volumeUtilization: volumeUtilization,
+                weightUtilization: weightUtilization,
+                packingDetails: packingDetails,
+                boxDimensions: {
+                    length: boxLength,
+                    width: boxWidth,
+                    height: boxHeight
+                }
+            };
+            
+            displayResults(currentResult);
+        }
+
+        function displayResults(result) {
+            var container = document.getElementById('resultsContainer');
+            container.style.display = 'block';
+
+            var productsHTML = '';
+            for (var i = 0; i < result.packingDetails.length; i++) {
+                var detail = result.packingDetails[i];
+                var imageHTML = '';
+                if (detail.image) {
+                    imageHTML = '<img src="' + detail.image + '" class="product-result-image" alt="' + detail.name + '">';
+                }
+
+                productsHTML += 
+                    '<div class="product-result">' +
+                        '<div class="product-result-header">' +
+                            imageHTML +
+                            '<div style="flex: 1;">' +
+                                '<div class="product-name">' + detail.name + '</div>' +
+                                '<div class="product-details">Dimensions: ' + detail.dimensions + ' cm</div>' +
+                                '<div class="product-details">Unit Weight: ' + detail.unitWeight + ' g | Unit Volume: ' + detail.unitVolume.toFixed(2) + ' cm³</div>' +
+                            '</div>' +
+                        '</div>' +
+                        '<div class="quantity-box">' +
+                            '<div>' +
+                                '<div class="quantity-number">' + detail.maxQuantity + ' units</div>' +
+                                '<div class="quantity-label">Maximum quantity that fits</div>' +
+                            '</div>' +
+                            '<div class="limit-info">' +
+                                '<div>Limited by: <span class="limit-factor">' + detail.limitingFactor + '</span></div>' +
+                                '<div>Total: ' + detail.weight.toFixed(2) + ' g</div>' +
+                                '<div>Total: ' + detail.volume.toFixed(2) + ' cm³</div>' +
+                            '</div>' +
+                        '</div>' +
+                    '</div>';
+            }
+
+            container.innerHTML = 
+                '<div class="card">' +
+                    '<h2 class="section-title">Maximum Quantities</h2>' +
+                    '<div class="results-summary">' +
+                        '<p>📦 Box Capacity Summary</p>' +
+                        '<small>The calculator has determined the maximum quantity of each product that can fit in your box.</small>' +
+                    '</div>' +
+                    '<div class="btn-actions">' +
+                        '<button class="btn btn-secondary" onclick="exportToPDF()">📄 Export to PDF</button>' +
+                        '<button class="btn btn-info" onclick="show3DVisualization()">🎮 3D Visualization</button>' +
+                        '<button class="btn btn-success" onclick="exportToGoogleSheets()">📊 Export Products to Sheets</button>' +
+                        '<button class="btn btn-warning" onclick="sendToGoogleSheets()">🔗 Share Products Link</button>' +
+                    '</div>' +
+                    '<div class="stats-grid">' +
+                        '<div class="stat-card blue">' +
+                            '<h3>Volume Analysis</h3>' +
+                            '<p>Box Volume: ' + result.boxVolume.toFixed(2) + ' cm³</p>' +
+                            '<p>Products Volume: ' + result.totalVolume.toFixed(2) + ' cm³</p>' +
+                            '<div style="display: flex; justify-content: space-between; font-size: 14px; margin-top: 10px;">' +
+                                '<span>Utilization</span>' +
+                                '<span style="font-weight: 600;">' + result.volumeUtilization.toFixed(1) + '%</span>' +
+                            '</div>' +
+                            '<div class="progress-bar">' +
+                                '<div class="progress-fill blue" style="width: ' + Math.min(result.volumeUtilization, 100) + '%"></div>' +
+                            '</div>' +
+                        '</div>' +
+                        '<div class="stat-card purple">' +
+                            '<h3>Weight Analysis</h3>' +
+                            '<p>Max Weight: ' + result.boxMaxWeightKg.toFixed(2) + ' kg</p>' +
+                            '<p>Products Weight: ' + (result.totalWeight / 1000).toFixed(2) + ' kg</p>' +
+                            '<div style="display: flex; justify-content: space-between; font-size: 14px; margin-top: 10px;">' +
+                                '<span>Utilization</span>' +
+                                '<span style="font-weight: 600;">' + result.weightUtilization.toFixed(1) + '%</span>' +
+                            '</div>' +
+                            '<div class="progress-bar">' +
+                                '<div class="progress-fill purple" style="width: ' + Math.min(result.weightUtilization, 100) + '%"></div>' +
+                            '</div>' +
+                        '</div>' +
+                    '</div>' +
+                    '<div class="section-title">Product Quantities</div>' +
+                    productsHTML +
+                '</div>';
+        }
+
+        // Export to Google Sheets
+        function exportToGoogleSheets() {
+            if (savedProducts.length === 0) {
+                alert('⚠️ No saved products to export!\n\nPlease save some products first by:\n1. Adding product details\n2. Clicking "Save Product" button');
+                return;
+            }
+
+            // Create CSV with ONLY product information
+            var csvContent = "\uFEFF";
+            csvContent += "Product Name,Length (cm),Width (cm),Height (cm),Weight (g),Image URL\n";
+            
+            for (var i = 0; i < savedProducts.length; i++) {
+                var product = savedProducts[i];
+                var imageData = product.image || '';
+                
+                // Clean product name for CSV
+                var cleanName = (product.name || 'Unnamed Product').replace(/"/g, '""');
+                
+                csvContent += '"' + cleanName + '",' +
+                    product.length + ',' +
+                    product.width + ',' +
+                    product.height + ',' +
+                    product.weight + ',' +
+                    '"' + imageData.substring(0, 100) + '..."\n';
+            }
+
+            var blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            var link = document.createElement('a');
+            var url = URL.createObjectURL(blob);
+            var filename = 'products_database_' + new Date().toISOString().split('T')[0] + '.csv';
+            link.setAttribute('href', url);
+            link.setAttribute('download', filename);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+            setTimeout(function() {
+                alert('✅ Products Database Exported!\n\n📊 ' + savedProducts.length + ' products in CSV file\n\n📋 TO IMPORT TO GOOGLE SHEETS:\n\n1. Open: sheets.google.com\n2. Create new spreadsheet\n3. File → Import → Upload\n4. Select: ' + filename + '\n5. Import location: "Replace spreadsheet"\n6. Click: Import data\n\n✨ Your products are now in Google Sheets!\n\nYou can add images manually or use the image URLs.');
+            }, 100);
+        }
+
+        // Send to Google Sheets via URL (Alternative method)
+        function sendToGoogleSheets() {
+            if (savedProducts.length === 0) {
+                alert('⚠️ No saved products!\n\nPlease save products first.');
+                return;
+            }
+
+            var sheetsData = [];
+            for (var i = 0; i < savedProducts.length; i++) {
+                var p = savedProducts[i];
+                sheetsData.push({
+                    name: p.name || 'Unnamed',
+                    length: p.length,
+                    width: p.width,
+                    height: p.height,
+                    weight: p.weight
+                });
+            }
+
+            var dataString = JSON.stringify(sheetsData);
+            var encodedData = encodeURIComponent(dataString);
+            
+            // This creates a shareable link with the data
+            var shareUrl = window.location.origin + window.location.pathname + '?import=' + encodedData;
+            
+            if (navigator.clipboard) {
+                navigator.clipboard.writeText(shareUrl).then(function() {
+                    alert('✅ Share Link Copied!\n\nShare this link with others.\nWhen they open it, your products will be imported automatically!\n\nLink length: ' + shareUrl.length + ' characters');
+                }).catch(function() {
+                    prompt('Copy this link to share your products:', shareUrl);
+                });
+            } else {
+                prompt('Copy this link to share your products:', shareUrl);
+            }
+        }
+
+        // Check if products should be imported from URL
+        function checkForImport() {
+            var urlParams = new URLSearchParams(window.location.search);
+            var importData = urlParams.get('import');
+            
+            if (importData) {
+                try {
+                    var products = JSON.parse(decodeURIComponent(importData));
+                    for (var i = 0; i < products.length; i++) {
+                        var p = products[i];
+                        savedProducts.push({
+                            id: Date.now() + i,
+                            name: p.name,
+                            length: p.length,
+                            width: p.width,
+                            height: p.height,
+                            weight: p.weight,
+                            image: ''
+                        });
+                    }
+                    saveProductsToStorage();
+                    alert('✅ ' + products.length + ' products imported successfully!');
+                    
+                    // Clean URL
+                    window.history.replaceState({}, document.title, window.location.pathname);
+                } catch (e) {
+                    console.error('Import error:', e);
+                }
+            }
+        }
+
+        // PDF Export Function
+        function exportToPDF() {
+            if (!currentResult) {
+                alert('Please calculate packing first');
+                return;
+            }
+
+            var jsPDF = window.jspdf.jsPDF;
+            var doc = new jsPDF();
+
+            doc.setFontSize(22);
+            doc.setTextColor(79, 70, 229);
+            doc.text('BOX PACKING CALCULATOR', 105, 20, { align: 'center' });
+            
+            doc.setFontSize(10);
+            doc.setTextColor(100, 100, 100);
+            doc.text('Generated: ' + new Date().toLocaleString(), 105, 27, { align: 'center' });
+
+            doc.setDrawColor(79, 70, 229);
+            doc.setLineWidth(0.5);
+            doc.line(20, 30, 190, 30);
+
+            doc.setFontSize(14);
+            doc.setTextColor(0, 0, 0);
+            doc.text('Box Specifications', 14, 40);
+            
+            doc.setFontSize(11);
+            doc.setTextColor(60, 60, 60);
+            var yPos = 48;
+            doc.text('Length: ' + currentResult.boxDimensions.length + ' cm', 20, yPos);
+            doc.text('Width: ' + currentResult.boxDimensions.width + ' cm', 20, yPos + 6);
+            doc.text('Height: ' + currentResult.boxDimensions.height + ' cm', 20, yPos + 12);
+            doc.text('Max Weight: ' + currentResult.boxMaxWeightKg.toFixed(2) + ' kg (' + currentResult.boxMaxWeight.toFixed(0) + ' g)', 20, yPos + 18);
+            doc.text('Total Volume: ' + currentResult.boxVolume.toFixed(2) + ' cm³', 20, yPos + 24);
+
+            doc.setFontSize(14);
+            doc.setTextColor(0, 0, 0);
+            doc.text('Packing Summary', 14, 82);
+            
+            doc.setFontSize(11);
+            doc.setTextColor(60, 60, 60);
+            doc.text('Volume Used: ' + currentResult.totalVolume.toFixed(2) + ' cm³ (' + currentResult.volumeUtilization.toFixed(1) + '%)', 20, 90);
+            doc.text('Weight Used: ' + (currentResult.totalWeight / 1000).toFixed(2) + ' kg (' + currentResult.weightUtilization.toFixed(1) + '%)', 20, 96);
+            doc.text('Remaining Volume: ' + (currentResult.boxVolume - currentResult.totalVolume).toFixed(2) + ' cm³', 20, 102);
+            doc.text('Remaining Weight: ' + ((currentResult.boxMaxWeight - currentResult.totalWeight) / 1000).toFixed(2) + ' kg', 20, 108);
+
+            var tableData = [];
+            for (var i = 0; i < currentResult.packingDetails.length; i++) {
+                var detail = currentResult.packingDetails[i];
+                tableData.push([
+                    detail.name,
+                    detail.dimensions,
+                    detail.unitWeight + ' g',
+                    detail.maxQuantity,
+                    detail.limitingFactor.toUpperCase(),
+                    (detail.weight / 1000).toFixed(2) + ' kg',
+                    detail.volume.toFixed(0) + ' cm³'
+                ]);
+            }
+
+            doc.autoTable({
+                head: [['Product', 'Size (L×W×H)', 'Unit Wt', 'Qty', 'Limited By', 'Total Wt', 'Total Vol']],
+                body: tableData,
+                startY: 118,
+                theme: 'striped',
+                headStyles: { 
+                    fillColor: [79, 70, 229],
+                    textColor: 255,
+                    fontSize: 10,
+                    fontStyle: 'bold'
+                },
+                styles: { 
+                    fontSize: 9,
+                    cellPadding: 3
+                },
+                alternateRowStyles: {
+                    fillColor: [245, 247, 250]
+                },
+                margin: { left: 14, right: 14 }
+            });
+
+            var finalY = doc.lastAutoTable.finalY || 118;
+            
+            doc.setDrawColor(79, 70, 229);
+            doc.setLineWidth(0.5);
+            doc.line(20, finalY + 10, 190, finalY + 10);
+
+            doc.setFontSize(9);
+            doc.setTextColor(150, 150, 150);
+            doc.text('Box Packing Calculator - Professional Packing Analysis', 105, finalY + 16, { align: 'center' });
+
+            var filename = 'box_packing_' + new Date().toISOString().split('T')[0] + '.pdf';
+            doc.save(filename);
+
+            setTimeout(function() {
+                alert('✅ PDF Downloaded Successfully!\n\nFile: ' + filename + '\n\nThe PDF contains:\n• Box specifications\n• Packing summary\n• Detailed product table\n• Utilization statistics');
+            }, 100);
+        }
+
+        // 3D Visualization Functions
+        function show3DVisualization() {
+            if (!currentResult) {
+                alert('Please calculate packing first');
+                return;
+            }
+
+            document.getElementById('modal3d').style.display = 'block';
+            setTimeout(function() {
+                init3D();
+                animate3D();
+            }, 100);
+        }
+
+        function close3DModal() {
+            document.getElementById('modal3d').style.display = 'none';
+            packingAnimationRunning = false;
+            isAnimating = false;
+            if (animationId) {
+                cancelAnimationFrame(animationId);
+            }
+            if (orbitControls) {
+                orbitControls.dispose();
+            }
+            if (renderer) {
+                renderer.dispose();
+            }
+            productMeshes = [];
+            boxGroup = null;
+        }
+
+        function init3D() {
+            var canvas = document.getElementById('canvas3d');
+            var width = canvas.clientWidth;
+            var height = canvas.clientHeight;
+
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x0a0e27);
+            scene.fog = new THREE.FogExp2(0x0a0e27, 0.002);
+
+            camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 10000);
+            
+            var boxLength = currentResult.boxDimensions.length;
+            var boxWidth = currentResult.boxDimensions.width;
+            var boxHeight = currentResult.boxDimensions.height;
+            var maxDim = Math.max(boxLength, boxWidth, boxHeight);
+            
+            camera.position.set(maxDim * 2.5, maxDim * 2, maxDim * 2.5);
+            camera.lookAt(0, 0, 0);
+
+            renderer = new THREE.WebGLRenderer({ 
+                canvas: canvas, 
+                antialias: true, 
+                alpha: true,
+                powerPreference: "high-performance"
+            });
+            renderer.setSize(width, height);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+            renderer.outputEncoding = THREE.sRGBEncoding;
+            renderer.toneMapping = THREE.ACESFilmicToneMapping;
+            renderer.toneMappingExposure = 1.5;
+            renderer.physicallyCorrectLights = true;
+
+            orbitControls = new THREE.OrbitControls(camera, renderer.domElement);
+            orbitControls.enableDamping = true;
+            orbitControls.dampingFactor = 0.05;
+            orbitControls.minDistance = maxDim * 0.5;
+            orbitControls.maxDistance = maxDim * 10;
+            orbitControls.enablePan = true;
+            orbitControls.panSpeed = 0.8;
+            orbitControls.rotateSpeed = 0.8;
+            orbitControls.zoomSpeed = 1.2;
+            orbitControls.target.set(0, 0, 0);
+            orbitControls.update();
+
+            // Create a main group that contains EVERYTHING (box + products)
+            var mainGroup = new THREE.Group();
+            
+            boxGroup = new THREE.Group();
+            
+            var textureLoader = new THREE.TextureLoader();
+            var boxMaterial = new THREE.MeshStandardMaterial({ 
+                color: 0xd4a574,
+                roughness: 0.95,
+                metalness: 0.05,
+                side: THREE.DoubleSide,
+                flatShading: false
+            });
+
+            var bottom = new THREE.Mesh(new THREE.PlaneGeometry(boxLength, boxWidth), boxMaterial);
+            bottom.rotation.x = -Math.PI / 2;
+            bottom.position.y = -boxHeight / 2;
+            bottom.receiveShadow = true;
+            bottom.castShadow = true;
+            boxGroup.add(bottom);
+
+            var backMat = new THREE.MeshStandardMaterial({ 
+                color: 0xc9a365, 
+                roughness: 0.92, 
+                metalness: 0.03,
+                side: THREE.DoubleSide 
+            });
+            var back = new THREE.Mesh(new THREE.PlaneGeometry(boxLength, boxHeight), backMat);
+            back.position.z = -boxWidth / 2;
+            back.receiveShadow = true;
+            back.castShadow = true;
+            boxGroup.add(back);
+
+            var sideMat = new THREE.MeshStandardMaterial({ 
+                color: 0xb89356, 
+                roughness: 0.90, 
+                metalness: 0.04,
+                side: THREE.DoubleSide 
+            });
+            var left = new THREE.Mesh(new THREE.PlaneGeometry(boxWidth, boxHeight), sideMat);
+            left.rotation.y = Math.PI / 2;
+            left.position.x = -boxLength / 2;
+            left.receiveShadow = true;
+            left.castShadow = true;
+            boxGroup.add(left);
+
+            var right = new THREE.Mesh(new THREE.PlaneGeometry(boxWidth, boxHeight), sideMat);
+            right.rotation.y = -Math.PI / 2;
+            right.position.x = boxLength / 2;
+            right.receiveShadow = true;
+            right.castShadow = true;
+            boxGroup.add(right);
+
+            var frontMat = new THREE.MeshStandardMaterial({ 
+                color: 0xc9a365, 
+                roughness: 0.85,
+                metalness: 0.05,
+                transparent: true,
+                opacity: 0.15,
+                side: THREE.DoubleSide
+            });
+            var front = new THREE.Mesh(new THREE.PlaneGeometry(boxLength, boxHeight), frontMat);
+            front.position.z = boxWidth / 2;
+            front.receiveShadow = true;
+            boxGroup.add(front);
+
+            var edgesGeometry = new THREE.EdgesGeometry(new THREE.BoxGeometry(boxLength, boxHeight, boxWidth));
+            var edgesMaterial = new THREE.LineBasicMaterial({ color: 0x6b5536, linewidth: 3 });
+            var edges = new THREE.LineSegments(edgesGeometry, edgesMaterial);
+            boxGroup.add(edges);
+
+            mainGroup.add(boxGroup);
+
+            var colors = [
+                0xff3366, 0x33ff99, 0x3366ff, 0xffcc33, 
+                0xff6699, 0x66ffcc, 0xcc66ff, 0xffff66,
+                0xff99cc, 0x99ccff, 0xccff99, 0xff9966
+            ];
+            
+            productMeshes = [];
+            var allProducts = [];
+            
+            for (var i = 0; i < currentResult.packingDetails.length; i++) {
+                var detail = currentResult.packingDetails[i];
+                var dims = detail.dimensions.split(' × ');
+                var pLength = parseFloat(dims[0]);
+                var pWidth = parseFloat(dims[1]);
+                var pHeight = parseFloat(dims[2]);
+                var maxQty = detail.maxQuantity;
+
+                var xCount = Math.floor(boxLength / pLength);
+                var zCount = Math.floor(boxWidth / pWidth);
+                var productsPerLayer = xCount * zCount;
+
+                for (var j = 0; j < maxQty; j++) {
+                    var layer = Math.floor(j / productsPerLayer);
+                    var posInLayer = j % productsPerLayer;
+                    var xIndex = posInLayer % xCount;
+                    var zIndex = Math.floor(posInLayer / xCount);
+
+                    var x = -boxLength / 2 + pLength / 2 + xIndex * pLength;
+                    var y = -boxHeight / 2 + pHeight / 2 + layer * pHeight;
+                    var z = -boxWidth / 2 + pWidth / 2 + zIndex * pWidth;
+
+                    allProducts.push({
+                        x: x, y: y, z: z,
+                        length: pLength, width: pWidth, height: pHeight,
+                        color: colors[i % colors.length],
+                        startY: y + 400,
+                        name: detail.name
+                    });
+                }
+            }
+
+            for (var i = 0; i < allProducts.length; i++) {
+                var pos = allProducts[i];
+                var productGeometry = new THREE.BoxGeometry(pos.length, pos.height, pos.width, 1, 1, 1);
+                
+                var productMaterial = new THREE.MeshStandardMaterial({ 
+                    color: pos.color,
+                    roughness: 0.25,
+                    metalness: 0.75,
+                    emissive: pos.color,
+                    emissiveIntensity: 0.3,
+                    envMapIntensity: 1.5
+                });
+                
+                var productMesh = new THREE.Mesh(productGeometry, productMaterial);
+                productMesh.position.set(pos.x, pos.y, pos.z);
+                productMesh.castShadow = true;
+                productMesh.receiveShadow = true;
+                productMesh.userData.targetY = pos.y;
+                productMesh.userData.startY = pos.startY;
+                productMesh.userData.name = pos.name;
+
+                var productEdges = new THREE.EdgesGeometry(productGeometry);
+                var productLine = new THREE.LineSegments(
+                    productEdges, 
+                    new THREE.LineBasicMaterial({ color: 0x111111, linewidth: 2 })
+                );
+                productMesh.add(productLine);
+
+                mainGroup.add(productMesh);
+                productMeshes.push(productMesh);
+            }
+
+            scene.add(mainGroup);
+            boxMesh = mainGroup; // Now boxMesh is the main group containing everything
+
+            var hemiLight = new THREE.HemisphereLight(0xffffff, 0x444444, 0.6);
+            hemiLight.position.set(0, maxDim * 5, 0);
+            scene.add(hemiLight);
+
+            var keyLight = new THREE.DirectionalLight(0xffffff, 1.5);
+            keyLight.position.set(maxDim * 4, maxDim * 5, maxDim * 4);
+            keyLight.castShadow = true;
+            keyLight.shadow.camera.near = 1;
+            keyLight.shadow.camera.far = maxDim * 20;
+            keyLight.shadow.camera.left = -maxDim * 4;
+            keyLight.shadow.camera.right = maxDim * 4;
+            keyLight.shadow.camera.top = maxDim * 4;
+            keyLight.shadow.camera.bottom = -maxDim * 4;
+            keyLight.shadow.mapSize.width = 4096;
+            keyLight.shadow.mapSize.height = 4096;
+            keyLight.shadow.bias = -0.00005;
+            keyLight.shadow.radius = 3;
+            scene.add(keyLight);
+
+            var fillLight = new THREE.DirectionalLight(0x80d0ff, 0.6);
+            fillLight.position.set(-maxDim * 3, maxDim * 2, -maxDim * 2);
+            scene.add(fillLight);
+
+            var rimLight = new THREE.SpotLight(0xffaa77, 0.8);
+            rimLight.position.set(0, maxDim * 3, -maxDim * 4);
+            rimLight.angle = Math.PI / 6;
+            rimLight.penumbra = 0.5;
+            scene.add(rimLight);
+
+            var pointLight1 = new THREE.PointLight(0xff6b9d, 0.4, maxDim * 8);
+            pointLight1.position.set(maxDim * 2, maxDim, maxDim * 2);
+            scene.add(pointLight1);
+
+            var pointLight2 = new THREE.PointLight(0x6b9dff, 0.4, maxDim * 8);
+            pointLight2.position.set(-maxDim * 2, maxDim, -maxDim * 2);
+            scene.add(pointLight2);
+
+            var groundGeometry = new THREE.CircleGeometry(maxDim * 8, 128);
+            var groundMaterial = new THREE.MeshStandardMaterial({ 
+                color: 0x1a1e35,
+                roughness: 0.95,
+                metalness: 0.1
+            });
+            var ground = new THREE.Mesh(groundGeometry, groundMaterial);
+            ground.rotation.x = -Math.PI / 2;
+            ground.position.y = -boxHeight / 2 - 1;
+            ground.receiveShadow = true;
+            scene.add(ground);
+
+            var gridHelper = new THREE.GridHelper(maxDim * 8, 40, 0x3a4a6a, 0x1f2937);
+            gridHelper.position.y = -boxHeight / 2 - 0.8;
+            gridHelper.material.transparent = true;
+            gridHelper.material.opacity = 0.25;
+            scene.add(gridHelper);
+
+            var ringGeometry = new THREE.TorusGeometry(maxDim * 1.8, 0.3, 16, 100);
+            var ringMaterial = new THREE.MeshStandardMaterial({ 
+                color: 0x4a5568, 
+                emissive: 0x667eea,
+                emissiveIntensity: 0.2,
+                roughness: 0.4,
+                metalness: 0.8,
+                transparent: true,
+                opacity: 0.3
+            });
+            var ring = new THREE.Mesh(ringGeometry, ringMaterial);
+            ring.rotation.x = Math.PI / 2;
+            ring.position.y = -boxHeight / 2 - 0.5;
+            scene.add(ring);
+
+            raycaster = new THREE.Raycaster();
+            mouse = new THREE.Vector2();
+        }
+
+        var animationIndex = 0;
+        var packingAnimationRunning = false;
+        var dropIntervals = [];
+
+        function startPackingAnimation() {
+            if (packingAnimationRunning) return;
+            
+            for (var i = 0; i < dropIntervals.length; i++) {
+                clearInterval(dropIntervals[i]);
+            }
+            dropIntervals = [];
+            
+            for (var i = 0; i < productMeshes.length; i++) {
+                productMeshes[i].position.y = productMeshes[i].userData.startY;
+            }
+            
+            animationIndex = 0;
+            packingAnimationRunning = true;
+            dropNextProduct();
+        }
+
+        function dropNextProduct() {
+            if (animationIndex >= productMeshes.length) {
+                packingAnimationRunning = false;
+                return;
+            }
+
+            var product = productMeshes[animationIndex];
+            var targetY = product.userData.targetY;
+            var speed = 18;
+            
+            var interval = setInterval(function() {
+                if (product.position.y > targetY) {
+                    product.position.y -= speed;
+                    if (product.position.y <= targetY) {
+                        product.position.y = targetY;
+                        clearInterval(interval);
+                    }
+                }
+            }, 16);
+            
+            dropIntervals.push(interval);
+            animationIndex++;
+            
+            if (animationIndex < productMeshes.length) {
+                setTimeout(dropNextProduct, 25);
+            } else {
+                packingAnimationRunning = false;
+            }
+        }
+
+        function resetPacking() {
+            if (!boxMesh) return;
+            
+            packingAnimationRunning = false;
+            animationIndex = 0;
+            
+            for (var i = 0; i < dropIntervals.length; i++) {
+                clearInterval(dropIntervals[i]);
+            }
+            dropIntervals = [];
+            
+            boxMesh.rotation.set(0, 0, 0);
+            
+            boxMesh.children.forEach(function(child) {
+                if (child.userData && child.userData.targetY !== undefined) {
+                    child.position.y = child.userData.targetY;
+                }
+            });
+        }
+
+        function animate3D() {
+            animationId = requestAnimationFrame(animate3D);
+
+            if (orbitControls) {
+                orbitControls.update();
+            }
+
+            if (autoRotate && boxMesh && !packingAnimationRunning) {
+                boxMesh.rotation.y += 0.002;
+            }
+
+            if (renderer && scene && camera) {
+                renderer.render(scene, camera);
+            }
+        }
+
+        function toggleAutoRotate() {
+            autoRotate = !autoRotate;
+            var btn = document.getElementById('autoRotateBtn');
+            if (btn) {
+                btn.textContent = '🔁 Auto Rotate: ' + (autoRotate ? 'ON' : 'OFF');
+            }
+        }
+
+        function resetCamera() {
+            if (camera && orbitControls && currentResult) {
+                var maxDim = Math.max(
+                    currentResult.boxDimensions.length,
+                    currentResult.boxDimensions.width,
+                    currentResult.boxDimensions.height
+                );
+                camera.position.set(maxDim * 2.5, maxDim * 2, maxDim * 2.5);
+                orbitControls.target.set(0, 0, 0);
+                orbitControls.update();
+            }
+        }
+
+        function changeView(view) {
+            if (!camera || !currentResult) return;
+            
+            var maxDim = Math.max(
+                currentResult.boxDimensions.length,
+                currentResult.boxDimensions.width,
+                currentResult.boxDimensions.height
+            );
+            var boxHeight = currentResult.boxDimensions.height;
+            
+            switch(view) {
+                case 'top':
+                    camera.position.set(0, maxDim * 2.5, 0);
+                    camera.lookAt(0, 0, 0);
+                    break;
+                case 'side':
+                    camera.position.set(maxDim * 2.5, maxDim * 0.8, 0);
+                    camera.lookAt(0, boxHeight / 4, 0);
+                    break;
+                case 'front':
+                    camera.position.set(0, maxDim * 0.8, maxDim * 2.5);
+                    camera.lookAt(0, boxHeight / 4, 0);
+                    break;
+            }
+        }
+
+        window.onclick = function(event) {
+            var modal = document.getElementById('modal3d');
+            if (event.target == modal) {
+                close3DModal();
+            }
+        }
+
+        var canvas = document.getElementById('canvas3d');
+        var isDragging = false;
+        var previousMousePosition = { x: 0, y: 0 };
+
+        canvas.addEventListener('mousedown', function(e) {
+            isDragging = true;
+            previousMousePosition = { x: e.clientX, y: e.clientY };
+        });
+
+        canvas.addEventListener('mousemove', function(e) {
+            if (isDragging && camera) {
+                var deltaX = e.clientX - previousMousePosition.x;
+                var deltaY = e.clientY - previousMousePosition.y;
+
+                var rotationSpeed = 0.005;
+                
+                if (boxMesh) {
+                    boxMesh.rotation.y += deltaX * rotationSpeed;
+                    boxMesh.rotation.x += deltaY * rotationSpeed;
+                }
+                
+                for (var i = 0; i < productMeshes.length; i++) {
+                    productMeshes[i].rotation.y += deltaX * rotationSpeed;
+                    productMeshes[i].rotation.x += deltaY * rotationSpeed;
+                }
+
+                previousMousePosition = { x: e.clientX, y: e.clientY };
+            }
+        });
+
+        canvas.addEventListener('mouseup', function() {
+            isDragging = false;
+        });
+
+        canvas.addEventListener('wheel', function(e) {
+            e.preventDefault();
+            if (camera) {
+                var zoomSpeed = 0.1;
+                var delta = e.deltaY * zoomSpeed;
+                camera.position.multiplyScalar(1 + delta * 0.01);
+            }
+        });
+
+        document.getElementById('addProductBtn').addEventListener('click', addProduct);
+        document.getElementById('calculateBtn').addEventListener('click', calculatePacking);
+
+        checkForImport();
+        generateShareCode();
+        loadSavedProducts();
+        renderProducts();
+    </script>
+</body>
+</html>
